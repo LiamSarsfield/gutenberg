@@ -365,14 +365,14 @@ function gutenberg_register_vendor_scripts( $scripts ) {
 		gutenberg_url( 'build/scripts/vendors/react' . $extension ),
 		// See https://github.com/pmmmwh/react-refresh-webpack-plugin/blob/main/docs/TROUBLESHOOTING.md#externalising-react.
 		SCRIPT_DEBUG ? array( 'wp-react-refresh-entry', 'wp-polyfill' ) : array( 'wp-polyfill' ),
-		'18'
+		'19'
 	);
 	gutenberg_override_script(
 		$scripts,
 		'react-dom',
 		gutenberg_url( 'build/scripts/vendors/react-dom' . $extension ),
 		array( 'react' ),
-		'18'
+		'19'
 	);
 
 	gutenberg_override_script(
@@ -380,7 +380,7 @@ function gutenberg_register_vendor_scripts( $scripts ) {
 		'react-jsx-runtime',
 		gutenberg_url( 'build/scripts/vendors/react-jsx-runtime' . $extension ),
 		array( 'react' ),
-		'18'
+		'19'
 	);
 }
 add_action( 'wp_default_scripts', 'gutenberg_register_vendor_scripts' );
