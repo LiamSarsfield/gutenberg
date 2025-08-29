@@ -251,7 +251,6 @@ function Iframe( {
 	<head>
 		<meta charset="utf-8">
 		<base href="${ window.location.origin }">
-		<script>window.frameElement._load()</script>
 		<style>
 			html{
 				height: auto !important;
@@ -267,10 +266,8 @@ function Iframe( {
 		</style>
 		${ styles }
 		${ scripts }
+		<script>window.frameElement._load()</script>
 	</head>
-	<body>
-		<script>document.currentScript.parentElement.remove()</script>
-	</body>
 </html>`;
 
 	const [ src, cleanup ] = useMemo( () => {
