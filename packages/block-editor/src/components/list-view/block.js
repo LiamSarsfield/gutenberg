@@ -54,6 +54,7 @@ import AriaReferencedText from './aria-referenced-text';
 import { unlock } from '../../lock-unlock';
 import usePasteStyles from '../use-paste-styles';
 import { cleanEmptyObject } from '../../hooks/utils';
+import { useSpotlightMode } from '../../hooks/use-spotlight-mode';
 import { BlockVisibilityModal } from '../block-visibility';
 
 function ListViewBlock( {
@@ -149,29 +150,7 @@ function ListViewBlock( {
 			[ clientId ]
 		);
 
-	const { isWithinEditedSection, editedContentOnlySection } = useSelect(
-		( select ) => {
-			const {
-				getEditedContentOnlySection,
-				isWithinEditedContentOnlySection,
-			} = unlock( select( blockEditorStore ) );
-
-			const editedSection = getEditedContentOnlySection();
-
-			return {
-				isWithinEditedSection: editedSection
-					? isWithinEditedContentOnlySection( clientId )
-					: false,
-				editedContentOnlySection: editedSection,
-			};
-		},
-		[ clientId ]
-	);
-
-	const shouldFadeInSpotlight =
-		!! window?.__experimentalContentOnlyPatternInsertion &&
-		!! editedContentOnlySection &&
-		! isWithinEditedSection;
+	const { shouldFade: shouldFadeInSpotlight } = useSpotlightMode( clientId );
 
 	const showBlockActions =
 		// When a block hides its toolbar it also hides the block settings menu,
@@ -605,6 +584,12 @@ function ListViewBlock( {
 		? __( 'Block is hidden.' )
 		: null;
 
+	const spotlightModeDescription = shouldFadeInSpotlight
+		? __(
+				'Block is not editable while editing a pattern section. Exit section editing to interact with this block.'
+		  )
+		: null;
+
 	const hasSiblings = siblingBlockCount > 0;
 	const hasRenderedMovers = showBlockMovers && hasSiblings;
 	const moverCellClassName = clsx(
@@ -677,6 +662,7 @@ function ListViewBlock( {
 				colSpan={ colSpan }
 				ref={ cellRef }
 				aria-selected={ !! isSelected }
+				aria-disabled={ shouldFadeInSpotlight ? 'true' : undefined }
 			>
 				{ ( { ref, tabIndex, onFocus } ) => (
 					<div className="block-editor-list-view-block__contents-container">
@@ -704,6 +690,7 @@ function ListViewBlock( {
 								blockPositionDescription,
 								blockPropertiesDescription,
 								blockVisibilityDescription,
+								spotlightModeDescription,
 							]
 								.filter( Boolean )
 								.join( ' ' ) }
