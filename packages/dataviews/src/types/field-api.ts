@@ -62,7 +62,7 @@ export type Operator =
 	| 'over';
 
 export type FieldTypeName =
-	| 'text'
+	| 'string'
 	| 'integer'
 	| 'number'
 	| 'datetime'
