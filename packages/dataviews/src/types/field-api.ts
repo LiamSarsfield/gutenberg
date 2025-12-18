@@ -78,7 +78,7 @@ export type FieldTypeName =
 
 export type Rules< Item > = {
 	required?: boolean;
-	elements?: boolean;
+	enum?: boolean;
 	pattern?: string;
 	minLength?: number;
 	maxLength?: number;
@@ -111,7 +111,7 @@ type NormalizedRule< Item, ConstraintType > = {
 
 export type NormalizedRules< Item > = {
 	required?: NormalizedRule< Item, boolean >;
-	elements?: NormalizedRule< Item, boolean >;
+	enum?: NormalizedRule< Item, boolean >;
 	pattern?: NormalizedRule< Item, string >;
 	minLength?: NormalizedRule< Item, number >;
 	maxLength?: NormalizedRule< Item, number >;
@@ -240,12 +240,12 @@ export type Field< Item > = {
 	/**
 	 * The list of options to pick from when using the field as a filter.
 	 */
-	elements?: Option[];
+	enum?: Option[];
 
 	/**
-	 * Retrieval function for elements.
+	 * Retrieval function for options (enum).
 	 */
-	getElements?: () => Promise< Option[] >;
+	getEnum?: () => Promise< Option[] >;
 
 	/**
 	 * Filter config for the field.
@@ -336,7 +336,7 @@ type NormalizedFieldBase< Item > = Omit< Field< Item >, 'Edit' | 'isValid' > & {
 	setValue: ( args: { item: Item; value: any } ) => DeepPartial< Item >;
 	render: ComponentType< DataViewRenderFieldProps< Item > >;
 	Edit: ComponentType< DataFormControlProps< Item > > | null;
-	hasElements: boolean;
+	hasEnum: boolean;
 	sort: ( a: Item, b: Item, direction: SortDirection ) => number;
 	isValid: NormalizedRules< Item >;
 	enableHiding: boolean;
@@ -403,7 +403,7 @@ export type FieldValidity = {
 		type: 'valid' | 'invalid' | 'validating';
 		message: string;
 	};
-	elements?: {
+	enum?: {
 		type: 'valid' | 'invalid' | 'validating';
 		message: string;
 	};
