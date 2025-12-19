@@ -21,7 +21,7 @@ const transformsWithInnerBlocks = [ 'List', 'Quote', 'Columns', 'Group' ];
 const blockTransforms = [
 	'Heading',
 	'Preformatted',
-	'Verse',
+	'Poetry',
 	'Code',
 	...transformsWithInnerBlocks,
 ];
