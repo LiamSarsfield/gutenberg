@@ -17,6 +17,35 @@ import {
 	getTypographyClassesAndStyles,
 } from '@wordpress/block-editor';
 
+/**
+ * Internal dependencies
+ */
+/**
+ * Returns the width classes for the button based on the width attribute.
+ *
+ * @param {string} width - The width value (e.g., '25%', '50%', '75%', '100%', or custom value).
+ * @return {Object} Object with width-related class names as keys and true as values.
+ */
+function getWidthClasses( width ) {
+	const percentageWidths = [ '25%', '50%', '75%', '100%' ];
+
+	if ( ! width ) {
+		return {};
+	}
+
+	if ( percentageWidths.includes( width ) ) {
+		return {
+			[ `has-custom-width wp-block-button__width-${ parseInt(
+				width
+			) }` ]: true,
+		};
+	}
+
+	return {
+		'has-custom-width': true,
+	};
+}
+
 export default function save( { attributes, className } ) {
 	const {
 		tagName,
@@ -28,8 +57,8 @@ export default function save( { attributes, className } ) {
 		text,
 		title,
 		url,
-		width,
 	} = attributes;
+	const { width } = style?.dimensions || {};
 
 	const TagName = tagName || 'a';
 	const isButtonTag = 'button' === TagName;
@@ -65,9 +94,7 @@ export default function save( { attributes, className } ) {
 	// if it had already been assigned, for the sake of backward-compatibility.
 	// A title will no longer be assigned for new or updated button block links.
 
-	const wrapperClasses = clsx( className, {
-		[ `has-custom-width wp-block-button__width-${ width }` ]: width,
-	} );
+	const wrapperClasses = clsx( className, getWidthClasses( width ) );
 
 	return (
 		<div { ...useBlockProps.save( { className: wrapperClasses } ) }>

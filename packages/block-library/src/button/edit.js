@@ -12,10 +12,6 @@ import {
 	ToolbarButton,
 	Popover,
 	ExternalLink,
-	__experimentalToolsPanel as ToolsPanel,
-	__experimentalToolsPanelItem as ToolsPanelItem,
-	__experimentalToggleGroupControl as ToggleGroupControl,
-	__experimentalToggleGroupControlOption as ToggleGroupControlOption,
 } from '@wordpress/components';
 import {
 	BlockControls,
@@ -47,7 +43,6 @@ import { useSelect, useDispatch } from '@wordpress/data';
 import { NEW_TAB_TARGET, NOFOLLOW_REL } from './constants';
 import { getUpdatedLinkAttributes } from './get-updated-link-attributes';
 import removeAnchorTag from '../utils/remove-anchor-tag';
-import { useToolsPanelDropdownMenuProps } from '../utils/hooks';
 import { unlock } from '../lock-unlock';
 import useDeprecatedTextAlign from '../utils/deprecated-text-align-attributes';
 
@@ -60,6 +55,25 @@ const LINK_SETTINGS = [
 		title: __( 'Mark as nofollow' ),
 	},
 ];
+
+function getWidthClasses( width ) {
+	const percentageWidths = [ '25%', '50%', '75%', '100%' ];
+
+	if ( ! width ) {
+		return {};
+	}
+
+	if ( percentageWidths.includes( width ) ) {
+		const numericWidth = parseInt( width, 10 );
+		return {
+			[ `has-custom-width wp-block-button__width-${ numericWidth }` ]: true,
+		};
+	}
+
+	return {
+		'has-custom-width': true,
+	};
+}
 
 function useEnter( props ) {
 	const { replaceBlocks, selectionChange } = useDispatch( blockEditorStore );
@@ -117,49 +131,6 @@ function useEnter( props ) {
 	}, [] );
 }
 
-function WidthPanel( { selectedWidth, setAttributes } ) {
-	const dropdownMenuProps = useToolsPanelDropdownMenuProps();
-
-	return (
-		<ToolsPanel
-			label={ __( 'Settings' ) }
-			resetAll={ () => setAttributes( { width: undefined } ) }
-			dropdownMenuProps={ dropdownMenuProps }
-		>
-			<ToolsPanelItem
-				label={ __( 'Width' ) }
-				isShownByDefault
-				hasValue={ () => !! selectedWidth }
-				onDeselect={ () => setAttributes( { width: undefined } ) }
-			>
-				<ToggleGroupControl
-					label={ __( 'Width' ) }
-					value={ selectedWidth }
-					onChange={ ( newWidth ) =>
-						setAttributes( { width: newWidth } )
-					}
-					isBlock
-					__next40pxDefaultSize
-				>
-					{ [ 25, 50, 75, 100 ].map( ( widthValue ) => {
-						return (
-							<ToggleGroupControlOption
-								key={ widthValue }
-								value={ widthValue }
-								label={ sprintf(
-									/* translators: %d: Percentage value. */
-									__( '%d%%' ),
-									widthValue
-								) }
-							/>
-						);
-					} ) }
-				</ToggleGroupControl>
-			</ToolsPanelItem>
-		</ToolsPanel>
-	);
-}
-
 function ButtonEdit( props ) {
 	const {
 		attributes,
@@ -179,9 +150,10 @@ function ButtonEdit( props ) {
 		style,
 		text,
 		url,
-		width,
 		metadata,
 	} = attributes;
+	const width = style?.dimensions?.width;
+
 	useDeprecatedTextAlign( props );
 
 	const TagName = tagName || 'a';
@@ -320,16 +292,11 @@ function ButtonEdit( props ) {
 	const hasNonContentControls = blockEditingMode === 'default';
 	const hasBlockControls =
 		hasNonContentControls || ( isLinkTag && ! lockUrlControls );
+	const classes = clsx( blockProps.className, getWidthClasses( width ) );
 
 	return (
 		<>
-			<div
-				{ ...blockProps }
-				className={ clsx( blockProps.className, {
-					[ `has-custom-width wp-block-button__width-${ width }` ]:
-						width,
-				} ) }
-			>
+			<div { ...blockProps } className={ classes }>
 				<RichText
 					ref={ mergedRef }
 					aria-label={ __( 'Button text' ) }
@@ -432,12 +399,6 @@ function ButtonEdit( props ) {
 						/>
 					</Popover>
 				) }
-			<InspectorControls>
-				<WidthPanel
-					selectedWidth={ width }
-					setAttributes={ setAttributes }
-				/>
-			</InspectorControls>
 			<InspectorControls group="advanced">
 				<HTMLElementControl
 					tagName={ tagName }
