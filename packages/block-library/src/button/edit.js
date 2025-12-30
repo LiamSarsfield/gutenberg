@@ -45,6 +45,7 @@ import { getUpdatedLinkAttributes } from './get-updated-link-attributes';
 import removeAnchorTag from '../utils/remove-anchor-tag';
 import { unlock } from '../lock-unlock';
 import useDeprecatedTextAlign from '../utils/deprecated-text-align-attributes';
+import { getWidthClasses } from './utils';
 
 const { HTMLElementControl } = unlock( blockEditorPrivateApis );
 
@@ -55,25 +56,6 @@ const LINK_SETTINGS = [
 		title: __( 'Mark as nofollow' ),
 	},
 ];
-
-function getWidthClasses( width ) {
-	const percentageWidths = [ '25%', '50%', '75%', '100%' ];
-
-	if ( ! width ) {
-		return {};
-	}
-
-	if ( percentageWidths.includes( width ) ) {
-		const numericWidth = parseInt( width, 10 );
-		return {
-			[ `has-custom-width wp-block-button__width-${ numericWidth }` ]: true,
-		};
-	}
-
-	return {
-		'has-custom-width': true,
-	};
-}
 
 function useEnter( props ) {
 	const { replaceBlocks, selectionChange } = useDispatch( blockEditorStore );
