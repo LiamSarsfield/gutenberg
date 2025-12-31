@@ -1655,4 +1655,66 @@ test.describe( 'List (@firefox)', () => {
 			},
 		] );
 	} );
+
+	test( 'should leave the rest of the list intact when merging into an empty list item', async ( {
+		editor,
+		page,
+	} ) => {
+		await editor.insertBlock( {
+			name: 'core/list',
+			innerBlocks: [
+				{
+					name: 'core/list-item',
+					attributes: { content: '1' },
+					innerBlocks: [
+						{
+							name: 'core/list',
+							innerBlocks: [
+								{
+									name: 'core/list-item',
+									attributes: { content: 'a' },
+								},
+								{
+									name: 'core/list-item',
+									attributes: { content: 'b' },
+								},
+							],
+						},
+					],
+				},
+			],
+		} );
+
+		await page.keyboard.press( 'ArrowDown' );
+		await page.keyboard.press( 'ArrowDown' );
+		await page.keyboard.press( 'Enter' );
+		await page.keyboard.press( 'Backspace' );
+
+		expect( await editor.getBlocks() ).toMatchObject( [
+			{
+				name: 'core/list',
+				innerBlocks: [
+					{
+						name: 'core/list-item',
+						attributes: { content: '1' },
+						innerBlocks: [
+							{
+								name: 'core/list',
+								innerBlocks: [
+									{
+										name: 'core/list-item',
+										attributes: { content: 'a' },
+									},
+									{
+										name: 'core/list-item',
+										attributes: { content: 'b' },
+									},
+								],
+							},
+						],
+					},
+				],
+			},
+		] );
+	} );
 } );
