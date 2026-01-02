@@ -77,8 +77,8 @@
 		"esbuild-esm-loader": "0.3.3"
 	},
 	"peerDependencies": {
-		"react": "^18.0.0",
-		"react-dom": "^18.0.0",
+		"react": "^19.0.0",
+		"react-dom": "^19.0.0",
 		"stylelint": "^16.8.2"
 	},
 	"peerDependenciesMeta": {
