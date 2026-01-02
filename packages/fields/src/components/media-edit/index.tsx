@@ -127,7 +127,7 @@ function MediaPreview( {
 	}
 	const attachmentTitle = attachment.title.rendered;
 	const mimeType = attachment.mime_type;
-	let preview: JSX.Element = <Icon icon={ file } />;
+	let preview: React.JSX.Element = <Icon icon={ file } />;
 	if ( mimeType.startsWith( 'image/' ) ) {
 		preview = (
 			<img
@@ -171,7 +171,7 @@ function MediaPreview( {
  * @param {boolean}              [props.multiple]            - Whether to allow multiple media selections. Default `false`.
  * @param {boolean}              [props.hideLabelFromVision] - Whether the label should be hidden from vision.
  *
- * @return {JSX.Element} The media edit control component.
+ * @return {import('react').JSX.Element} The media edit control component.
  *
  * @example
  * ```tsx

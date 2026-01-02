@@ -15,7 +15,7 @@ import { useDispatch } from '@wordpress/data';
  * @param {Object} props
  * @param {Object} props.attributes   The block attributes.
  * @param {string} props.tabsClientId The client ID of the parent tabs block.
- * @return {JSX.Element} The toolbar control element.
+ * @return {import('react').JSX.Element} The toolbar control element.
  */
 export default function AddTabToolbarControl( { attributes, tabsClientId } ) {
 	const { insertBlock } = useDispatch( blockEditorStore );

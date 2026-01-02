@@ -29,7 +29,7 @@ import OverlayMenuPreviewButton from './overlay-menu-preview-button';
  * @param {string}   props.overlayMenuPreviewClasses CSS classes for overlay menu preview button.
  * @param {string}   props.overlayMenuPreviewId      ID for overlay menu preview.
  * @param {boolean}  props.isResponsive              Whether overlay menu is responsive.
- * @return {JSX.Element|null}                       The overlay panel component or null if overlay is disabled.
+ * @return {import('react').JSX.Element|null}                       The overlay panel component or null if overlay is disabled.
  */
 export default function OverlayPanel( {
 	overlayMenu,

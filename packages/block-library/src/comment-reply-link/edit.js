@@ -21,7 +21,7 @@ import {
  * @param {Object} props.attributes           Block attributes.
  * @param {string} props.attributes.textAlign The `textAlign` attribute.
  *
- * @return {JSX.Element} React element.
+ * @return {import('react').JSX.Element} React element.
  */
 function Edit( { setAttributes, attributes: { textAlign } } ) {
 	const blockProps = useBlockProps( {

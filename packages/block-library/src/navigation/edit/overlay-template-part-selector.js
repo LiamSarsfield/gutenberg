@@ -29,7 +29,7 @@ import useCreateOverlayTemplatePart from './use-create-overlay';
  * @param {string}   props.overlay                  Currently selected overlay template part ID.
  * @param {Function} props.setAttributes            Function to update block attributes.
  * @param {Function} props.onNavigateToEntityRecord Function to navigate to template part editor.
- * @return {JSX.Element} The overlay template part selector component.
+ * @return {import('react').JSX.Element} The overlay template part selector component.
  */
 export default function OverlayTemplatePartSelector( {
 	overlay,
