@@ -30,6 +30,7 @@ import { useIntersectionObserver } from './use-intersection-observer';
 import { useScrollIntoView } from './use-scroll-into-view';
 import { useFlashEditableBlocks } from '../../use-flash-editable-blocks';
 import { useFirefoxDraggableCompatibility } from './use-firefox-draggable-compatibility';
+import { useBlockVisibility } from '../../block-visibility/';
 
 /**
  * This hook is used to lightly mark an element as a block element. The element
@@ -97,23 +98,27 @@ export function useBlockProps( props = {}, { __unstableIsHtml } = {} ) {
 		hasChildSelected,
 		isEditingDisabled,
 		hasEditableOutline,
-		isTemporarilyEditingAsBlocks,
+		isEditingContentOnlySection,
 		defaultClassName,
 		isSectionBlock,
+		isWithinSectionBlock,
 		canMove,
+		blockVisibility,
+		deviceType,
 	} = useContext( PrivateBlockContext );
 
 	// translators: %s: Type of block (i.e. Text, Image etc)
 	const blockLabel = sprintf( __( 'Block: %s' ), blockTitle );
 	const htmlSuffix = mode === 'html' && ! __unstableIsHtml ? '-visual' : '';
 	const ffDragRef = useFirefoxDraggableCompatibility();
+	const isHoverEnabled = ! isWithinSectionBlock;
 	const mergedRefs = useMergeRefs( [
 		props.ref,
 		useFocusFirstElement( { clientId, initialPosition } ),
 		useBlockRefProvider( clientId ),
 		useFocusHandler( clientId ),
 		useEventHandlers( { clientId, isSelected } ),
-		useIsHovered(),
+		useIsHovered( { isEnabled: isHoverEnabled } ),
 		useIntersectionObserver(),
 		useMovingAnimation( { triggerAnimationOnChange: index, clientId } ),
 		useDisabled( { isDisabled: ! hasOverlay } ),
@@ -134,6 +139,12 @@ export function useBlockProps( props = {}, { __unstableIsHtml } = {} ) {
 					'var(--wp-block-synced-color--rgb)',
 		  }
 		: {};
+
+	// Use block visibility hook with data from context to avoid extra subscription.
+	const { isBlockCurrentlyHidden } = useBlockVisibility( {
+		blockVisibility,
+		deviceType,
+	} );
 
 	// Ensures it warns only inside the `edit` implementation for the block.
 	if ( blockApiVersion < 2 && clientId === blockEditContext.clientId ) {
@@ -181,8 +192,8 @@ export function useBlockProps( props = {}, { __unstableIsHtml } = {} ) {
 				'is-editing-disabled': isEditingDisabled,
 				'has-editable-outline': hasEditableOutline,
 				'has-negative-margin': hasNegativeMargin,
-				'is-content-locked-temporarily-editing-as-blocks':
-					isTemporarilyEditingAsBlocks,
+				'is-editing-content-only-section': isEditingContentOnlySection,
+				'is-block-hidden': isBlockCurrentlyHidden,
 			},
 			className,
 			props.className,

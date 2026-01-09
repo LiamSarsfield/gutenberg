@@ -14,10 +14,17 @@ const ContentTab = ( { contentClientIds } ) => {
 		return null;
 	}
 
+	const shouldShowBlockFields =
+		window?.__experimentalContentOnlyInspectorFields;
+
 	return (
-		<PanelBody title={ __( 'Content' ) }>
-			<BlockQuickNavigation clientIds={ contentClientIds } />
-		</PanelBody>
+		<>
+			{ ! shouldShowBlockFields && (
+				<PanelBody title={ __( 'Content' ) }>
+					<BlockQuickNavigation clientIds={ contentClientIds } />
+				</PanelBody>
+			) }
+		</>
 	);
 };
 
