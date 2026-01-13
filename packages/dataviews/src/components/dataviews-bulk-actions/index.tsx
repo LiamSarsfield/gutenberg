@@ -117,7 +117,9 @@ export function BulkSelectionCheckbox< Item >( {
 			selection.includes( getItemId( item ) ) &&
 			selectableItems.includes( item )
 	);
-	const areAllSelected = selectedItems.length === selectableItems.length;
+	const areAllSelected =
+		!! selectedItems.length &&
+		selectedItems.length === selectableItems.length;
 	return (
 		<CheckboxControl
 			className="dataviews-view-table-selection-checkbox"
