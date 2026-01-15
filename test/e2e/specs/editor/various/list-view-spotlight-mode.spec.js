@@ -20,12 +20,14 @@ test.describe( 'List View Spotlight Mode', () => {
 		await requestUtils.deleteAllBlocks();
 	} );
 
-	test( 'should show disabled blocks in list view and constrain keyboard navigation', async ( {
-		editor,
-		page,
-		pageUtils,
-	} ) => {
-		// Step 1: Create a Group block with two paragraphs inside
+	/**
+	 * Helper function to create a Group block with two paragraphs and convert it to an unsynced pattern.
+	 *
+	 * @param {Object} editor Editor utilities
+	 * @param {Object} page   Page object
+	 */
+	async function createPatternWithContent( editor, page ) {
+		// Create a Group block with two paragraphs inside
 		await editor.insertBlock( { name: 'core/group' } );
 		await editor.canvas
 			.locator(
@@ -45,7 +47,7 @@ test.describe( 'List View Spotlight Mode', () => {
 		// Add second paragraph inside the group
 		await page.keyboard.type( 'Pattern paragraph 2' );
 
-		// Step 2: Create an unsynced pattern from the Group block
+		// Create an unsynced pattern from the Group block
 		await editor.selectBlocks(
 			editor.canvas.getByRole( 'document', {
 				name: 'Block: Group',
@@ -71,26 +73,21 @@ test.describe( 'List View Spotlight Mode', () => {
 			.setChecked( false ); // Make it unsynced
 
 		await page.keyboard.press( 'Enter' );
+	}
 
-		// Wait for the pattern creation to complete
-		// Unsynced patterns insert as regular blocks, so we should see the Group
-		// Wait for blocks to be in a stable state
-		await expect
-			.poll( async () => {
-				const blocks = await editor.getBlocks();
-				return blocks.some(
-					( block ) =>
-						block.name === 'core/group' &&
-						block.innerBlocks?.length === 2
-				);
-			} )
-			.toBe( true );
-
-		// Step 3: Insert a block beneath the group
-		await editor.insertBlock( { name: 'core/paragraph' } );
-		await page.keyboard.type( 'Block beneath pattern' );
-
-		// Step 4: Enter spotlight mode by selecting the Group block and clicking "Edit section"
+	/**
+	 * Helper function to enter spotlight mode and open list view.
+	 *
+	 * @param {Object} editor    Editor utilities
+	 * @param {Object} page      Page object
+	 * @param {Object} pageUtils Page utilities
+	 */
+	async function enterSpotlightModeAndOpenListView(
+		editor,
+		page,
+		pageUtils
+	) {
+		// Enter spotlight mode by selecting the Group block and clicking "Edit section"
 		await editor.selectBlocks(
 			editor.canvas.getByRole( 'document', {
 				name: 'Block: Group',
@@ -100,52 +97,47 @@ test.describe( 'List View Spotlight Mode', () => {
 		// Click "Edit section" from the block options menu
 		await editor.clickBlockOptionsMenuItem( 'Edit section' );
 
-		// Wait for spotlight mode to be active
-		// The pattern blocks should now be editable and other blocks should be faded
-		// Wait for paragraphs inside the group to be visible
-		await expect
-			.poll( async () => {
-				const paragraphs = await editor.canvas
-					.getByRole( 'document', {
-						name: 'Block: Paragraph',
-					} )
-					.count();
-				return paragraphs >= 2;
-			} )
-			.toBe( true );
-
-		// Step 5: Open the list view
+		// Open the list view
 		await pageUtils.pressKeys( 'access+o' );
 		const listView = page.getByRole( 'treegrid', {
 			name: 'Block navigation structure',
 		} );
 		await expect( listView ).toBeVisible();
+	}
 
-		// Step 6: Verify the block beneath the pattern shows in list view
-		// (should be visible but faded)
-		// The Group block created from the pattern should show the pattern name
+	test( 'should show disabled blocks in list view and constrain keyboard navigation', async ( {
+		editor,
+		page,
+		pageUtils,
+	} ) => {
+		await createPatternWithContent( editor, page );
+
+		await editor.insertBlock( { name: 'core/paragraph' } );
+		await page.keyboard.type( 'Block beneath pattern' );
+
+		await enterSpotlightModeAndOpenListView( editor, page, pageUtils );
+
+		const listView = page.getByRole( 'treegrid', {
+			name: 'Block navigation structure',
+		} );
+
 		const groupBlock = listView.getByRole( 'gridcell', {
 			name: 'Test Pattern for Spotlight',
 			exact: true,
 		} );
 		await expect( groupBlock ).toBeVisible();
 
-		// Find paragraph blocks - the one outside the group should be after it
-		// Get all paragraph cells and find the one that's not inside the group
 		const paragraphBlocks = listView.getByRole( 'gridcell', {
 			name: 'Paragraph',
 			exact: true,
 		} );
-		// The last paragraph should be the one beneath the group
 		const blockBeneathPattern = paragraphBlocks.last();
 		await expect( blockBeneathPattern ).toBeVisible();
 
-		// Verify it has the faded class by checking the parent row
-		const fadedBlockRow = blockBeneathPattern.locator( '..' ); // Get parent row
+		const fadedBlockRow = blockBeneathPattern.locator( '..' );
 		await expect( fadedBlockRow ).toHaveClass( /is-faded-in-spotlight/ );
 
-		// Step 7: Test keyboard navigation is constrained to pattern blocks on canvas
-		// Focus on the first paragraph inside the pattern (inside the Group)
+		// Keyboard navigation should be constrained to the pattern
 		await editor.canvas
 			.getByRole( 'document', {
 				name: 'Block: Paragraph',
@@ -153,11 +145,8 @@ test.describe( 'List View Spotlight Mode', () => {
 			.first()
 			.click();
 
-		// Try to navigate down - should move to next pattern block (Pattern paragraph 2)
 		await page.keyboard.press( 'ArrowDown' );
 
-		// Verify we're on Pattern paragraph 2 (the last paragraph in the pattern)
-		// Check that the paragraph containing "Pattern paragraph 2" is focused
 		const patternParagraph2 = editor.canvas
 			.getByRole( 'document', {
 				name: 'Block: Paragraph',
@@ -165,14 +154,10 @@ test.describe( 'List View Spotlight Mode', () => {
 			.filter( { hasText: 'Pattern paragraph 2' } );
 		await expect( patternParagraph2 ).toBeFocused();
 
-		// Try to navigate down again - should stay on Pattern paragraph 2
-		// (navigation should be prevented, so we remain on the last pattern paragraph)
+		// Attempting to navigate beyond the pattern should be prevented
 		await page.keyboard.press( 'ArrowDown' );
-
-		// Verify we're still on Pattern paragraph 2 and haven't navigated to the block beneath
 		await expect( patternParagraph2 ).toBeFocused();
 
-		// Also verify the block beneath pattern is NOT focused
 		const blockBeneath = editor.canvas
 			.getByRole( 'document', {
 				name: 'Block: Paragraph',
@@ -181,19 +166,91 @@ test.describe( 'List View Spotlight Mode', () => {
 		await expect( blockBeneath ).not.toBeFocused();
 	} );
 
-	// test( 'should exit spotlight mode when clicking faded block in list view', async ( {
-	// 	editor,
-	// 	page,
-	// 	pageUtils,
-	// } ) => {
+	test( 'should exit spotlight mode when clicking faded block in list view', async ( {
+		editor,
+		page,
+		pageUtils,
+	} ) => {
+		await createPatternWithContent( editor, page );
 
-	// } );
+		await editor.insertBlock( { name: 'core/paragraph' } );
+		await page.keyboard.type( 'Block beneath pattern' );
 
-	// test( 'should exit spotlight mode when pressing Escape key', async ( {
-	// 	editor,
-	// 	page,
-	// 	pageUtils,
-	// } ) => {
+		await enterSpotlightModeAndOpenListView( editor, page, pageUtils );
 
-	// } );
+		const listView = page.getByRole( 'treegrid', {
+			name: 'Block navigation structure',
+		} );
+		const paragraphBlocks = listView.getByRole( 'gridcell', {
+			name: 'Paragraph',
+			exact: true,
+		} );
+		const blockBeneathPattern = paragraphBlocks.last();
+		const fadedBlockRow = blockBeneathPattern.locator( '..' );
+		await expect( fadedBlockRow ).toHaveClass( /is-faded-in-spotlight/ );
+
+		// Force click on the faded block to exit spotlight mode (aria-disabled="true")
+		const fadedBlockButton = blockBeneathPattern.locator(
+			'.block-editor-list-view-block-contents'
+		);
+		// eslint-disable-next-line playwright/no-force-option
+		await fadedBlockButton.click( { force: true } );
+
+		await expect( fadedBlockRow ).not.toHaveClass(
+			/is-faded-in-spotlight/
+		);
+
+		const blockBeneath = editor.canvas
+			.getByRole( 'document', {
+				name: 'Block: Paragraph',
+			} )
+			.filter( { hasText: 'Block beneath pattern' } );
+		await expect( blockBeneath ).toBeVisible();
+	} );
+
+	test( 'should exit spotlight mode when pressing Escape key', async ( {
+		editor,
+		page,
+		pageUtils,
+	} ) => {
+		await createPatternWithContent( editor, page );
+
+		await editor.insertBlock( { name: 'core/paragraph' } );
+		await page.keyboard.type( 'Block beneath pattern' );
+
+		await enterSpotlightModeAndOpenListView( editor, page, pageUtils );
+
+		const listView = page.getByRole( 'treegrid', {
+			name: 'Block navigation structure',
+		} );
+		const paragraphBlocks = listView.getByRole( 'gridcell', {
+			name: 'Paragraph',
+			exact: true,
+		} );
+		const blockBeneathPattern = paragraphBlocks.last();
+		const fadedBlockRow = blockBeneathPattern.locator( '..' );
+		await expect( fadedBlockRow ).toHaveClass( /is-faded-in-spotlight/ );
+
+		await editor.canvas
+			.getByRole( 'document', {
+				name: 'Block: Paragraph',
+			} )
+			.first()
+			.click();
+
+		await page.keyboard.press( 'Escape' );
+
+		await expect( fadedBlockRow ).not.toHaveClass(
+			/is-faded-in-spotlight/
+		);
+
+		const blockBeneath = editor.canvas
+			.getByRole( 'document', {
+				name: 'Block: Paragraph',
+			} )
+			.filter( { hasText: 'Block beneath pattern' } );
+
+		await blockBeneath.click();
+		await expect( blockBeneath ).toBeFocused();
+	} );
 } );
