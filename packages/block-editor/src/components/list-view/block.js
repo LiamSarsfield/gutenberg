@@ -54,7 +54,6 @@ import AriaReferencedText from './aria-referenced-text';
 import { unlock } from '../../lock-unlock';
 import usePasteStyles from '../use-paste-styles';
 import { cleanEmptyObject } from '../../hooks/utils';
-import { useSpotlightMode } from '../../hooks/use-spotlight-mode';
 import { BlockVisibilityModal } from '../block-visibility';
 
 function ListViewBlock( {
@@ -127,30 +126,50 @@ function ListViewBlock( {
 
 	const pasteStyles = usePasteStyles();
 
-	const { block, blockName, allowRightClickOverrides, isBlockHidden } =
-		useSelect(
-			( select ) => {
-				const {
-					getBlock,
-					getBlockName: _getBlockName,
-					getSettings,
-				} = select( blockEditorStore );
-				const { isBlockHidden: _isBlockHidden } = unlock(
-					select( blockEditorStore )
-				);
+	const {
+		block,
+		blockName,
+		allowRightClickOverrides,
+		isBlockHidden,
+		isSpotlightActive,
+		editedSection,
+		isWithinEditedSection,
+	} = useSelect(
+		( select ) => {
+			const {
+				getBlock,
+				getBlockName: _getBlockName,
+				getSettings,
+			} = select( blockEditorStore );
+			const {
+				isBlockHidden: _isBlockHidden,
+				hasBlockSpotlight,
+				getEditedContentOnlySection,
+				isWithinEditedContentOnlySection,
+			} = unlock( select( blockEditorStore ) );
+			const editedContentOnlySection = getEditedContentOnlySection();
 
-				return {
-					block: getBlock( clientId ),
-					blockName: _getBlockName( clientId ),
-					allowRightClickOverrides:
-						getSettings().allowRightClickOverrides,
-					isBlockHidden: _isBlockHidden( clientId ),
-				};
-			},
-			[ clientId ]
-		);
+			return {
+				block: getBlock( clientId ),
+				blockName: _getBlockName( clientId ),
+				allowRightClickOverrides:
+					getSettings().allowRightClickOverrides,
+				isBlockHidden: _isBlockHidden( clientId ),
+				isSpotlightActive: hasBlockSpotlight(),
+				editedSection: editedContentOnlySection,
+				isWithinEditedSection: editedContentOnlySection
+					? isWithinEditedContentOnlySection( clientId )
+					: false,
+			};
+		},
+		[ clientId ]
+	);
 
-	const { shouldFade: shouldFadeInSpotlight } = useSpotlightMode( clientId );
+	const shouldFadeInSpotlight = editedSection
+		? ! isWithinEditedSection
+		: isSpotlightActive && ! ( isSelected || isBranchSelected );
+	const shouldDisableInteractions =
+		!! editedSection && ! isWithinEditedSection;
 
 	const showBlockActions =
 		// When a block hides its toolbar it also hides the block settings menu,
@@ -421,8 +440,8 @@ function ListViewBlock( {
 	}
 
 	const onMouseEnter = useCallback( () => {
-		// Disable hover for faded blocks in spotlight mode.
-		if ( shouldFadeInSpotlight ) {
+		// Disable hover when section editing excludes this block.
+		if ( shouldDisableInteractions ) {
 			return;
 		}
 		setIsHovered( true );
@@ -431,11 +450,11 @@ function ListViewBlock( {
 		clientId,
 		setIsHovered,
 		debouncedToggleBlockHighlight,
-		shouldFadeInSpotlight,
+		shouldDisableInteractions,
 	] );
 	const onMouseLeave = useCallback( () => {
-		// Disable hover for faded blocks in spotlight mode.
-		if ( shouldFadeInSpotlight ) {
+		// Disable hover when section editing excludes this block.
+		if ( shouldDisableInteractions ) {
 			return;
 		}
 		setIsHovered( false );
@@ -444,14 +463,13 @@ function ListViewBlock( {
 		clientId,
 		setIsHovered,
 		debouncedToggleBlockHighlight,
-		shouldFadeInSpotlight,
+		shouldDisableInteractions,
 	] );
 
 	const selectEditorBlock = useCallback(
 		( event ) => {
-			// If we're in spotlight mode and clicking outside the edited section,
-			// exit spotlight mode instead of selecting the block.
-			if ( shouldFadeInSpotlight ) {
+			// If we're editing a section and clicking outside it, exit section editing.
+			if ( shouldDisableInteractions ) {
 				stopEditingContentOnlySection();
 				event.preventDefault();
 				return;
@@ -462,7 +480,7 @@ function ListViewBlock( {
 		[
 			clientId,
 			selectBlock,
-			shouldFadeInSpotlight,
+			shouldDisableInteractions,
 			stopEditingContentOnlySection,
 		]
 	);
@@ -480,8 +498,8 @@ function ListViewBlock( {
 
 	const toggleExpanded = useCallback(
 		( event ) => {
-			// Prevent expanding/collapsing faded blocks in spotlight mode.
-			if ( shouldFadeInSpotlight ) {
+			// Prevent expanding/collapsing blocks outside the edited section.
+			if ( shouldDisableInteractions ) {
 				event.preventDefault();
 				event.stopPropagation();
 				return;
@@ -495,7 +513,7 @@ function ListViewBlock( {
 				expand( clientId );
 			}
 		},
-		[ clientId, expand, collapse, isExpanded, shouldFadeInSpotlight ]
+		[ clientId, expand, collapse, isExpanded, shouldDisableInteractions ]
 	);
 
 	// Allow right-clicking an item in the List View to open up the block settings dropdown.
@@ -584,12 +602,6 @@ function ListViewBlock( {
 		? __( 'Block is hidden.' )
 		: null;
 
-	const spotlightModeDescription = shouldFadeInSpotlight
-		? __(
-				'Block is not editable while editing a pattern section. Exit section editing to interact with this block.'
-		  )
-		: null;
-
 	const hasSiblings = siblingBlockCount > 0;
 	const hasRenderedMovers = showBlockMovers && hasSiblings;
 	const moverCellClassName = clsx(
@@ -662,7 +674,7 @@ function ListViewBlock( {
 				colSpan={ colSpan }
 				ref={ cellRef }
 				aria-selected={ !! isSelected }
-				aria-disabled={ shouldFadeInSpotlight ? 'true' : undefined }
+				aria-disabled={ shouldDisableInteractions ? 'true' : undefined }
 			>
 				{ ( { ref, tabIndex, onFocus } ) => (
 					<div className="block-editor-list-view-block__contents-container">
@@ -690,7 +702,6 @@ function ListViewBlock( {
 								blockPositionDescription,
 								blockPropertiesDescription,
 								blockVisibilityDescription,
-								spotlightModeDescription,
 							]
 								.filter( Boolean )
 								.join( ' ' ) }

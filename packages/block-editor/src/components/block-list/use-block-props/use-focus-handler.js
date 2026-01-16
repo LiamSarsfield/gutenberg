@@ -10,7 +10,6 @@ import { useRefEffect } from '@wordpress/compose';
 import { isInsideRootBlock } from '../../../utils/dom';
 import { store as blockEditorStore } from '../../../store';
 import { unlock } from '../../../lock-unlock';
-import { useSpotlightMode } from '../../../hooks/use-spotlight-mode';
 
 /**
  * Selects the block if it receives focus.
@@ -23,8 +22,23 @@ export function useFocusHandler( clientId ) {
 	const { stopEditingContentOnlySection } = unlock(
 		useDispatch( blockEditorStore )
 	);
-	const { editedSection, isWithinEditedSection } =
-		useSpotlightMode( clientId );
+	const { editedSection, isWithinEditedSection } = useSelect(
+		( select ) => {
+			const {
+				getEditedContentOnlySection,
+				isWithinEditedContentOnlySection,
+			} = unlock( select( blockEditorStore ) );
+			const editedContentOnlySection = getEditedContentOnlySection();
+
+			return {
+				editedSection: editedContentOnlySection,
+				isWithinEditedSection: editedContentOnlySection
+					? isWithinEditedContentOnlySection( clientId )
+					: false,
+			};
+		},
+		[ clientId ]
+	);
 
 	return useRefEffect(
 		( node ) => {
