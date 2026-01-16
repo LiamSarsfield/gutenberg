@@ -66,6 +66,7 @@ function InlineEditButton( {
 			selectBlock( clientId );
 		} else {
 			stopEditingContentOnlySection();
+			selectBlock( clientId );
 		}
 	};
 

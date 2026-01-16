@@ -26,7 +26,6 @@ import { unlock } from '../lock-unlock';
  * @param {string} clientId The block client ID to check.
  *
  * @return {Object} Object containing spotlight mode state:
- *                  - isSpotlightActive {boolean}: Whether spotlight mode is currently active (any section being edited).
  *                  - shouldFade {boolean}: Whether this specific block should be faded and disabled.
  *                  - editedSection {string|null}: The client ID of the section being edited, or null if none.
  *                  - isWithinEditedSection {boolean}: Whether this block is within the edited section.
@@ -55,7 +54,6 @@ export function useSpotlightMode( clientId ) {
 			// Feature flag check - if not enabled, spotlight mode is never active
 			if ( ! window?.__experimentalContentOnlyPatternInsertion ) {
 				return {
-					isSpotlightActive: false,
 					shouldFade: false,
 					editedSection: null,
 					isWithinEditedSection: false,
@@ -73,7 +71,6 @@ export function useSpotlightMode( clientId ) {
 				: false;
 
 			return {
-				isSpotlightActive: !! editedSection,
 				shouldFade: !! editedSection && ! isWithinEditedSection,
 				editedSection,
 				isWithinEditedSection,
