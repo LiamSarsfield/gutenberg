@@ -346,6 +346,112 @@ class Gutenberg_REST_Attachments_Controller extends WP_REST_Attachments_Controll
 	}
 
 	/**
+	 * Validates that uploaded image dimensions are appropriate for the specified image size.
+	 *
+	 * @param int    $width         Uploaded image width.
+	 * @param int    $height        Uploaded image height.
+	 * @param string $image_size    The target image size name.
+	 * @param int    $attachment_id The attachment ID.
+	 * @return true|WP_Error True if valid, WP_Error if invalid.
+	 */
+	private function validate_image_dimensions( int $width, int $height, string $image_size, int $attachment_id ) {
+		// 'original' size: should match original attachment dimensions.
+		if ( 'original' === $image_size ) {
+			$metadata = wp_get_attachment_metadata( $attachment_id, true );
+			if ( is_array( $metadata ) && isset( $metadata['width'], $metadata['height'] ) ) {
+				$expected_width  = (int) $metadata['width'];
+				$expected_height = (int) $metadata['height'];
+
+				if ( $width !== $expected_width || $height !== $expected_height ) {
+					return new WP_Error(
+						'rest_upload_dimension_mismatch',
+						sprintf(
+							/* translators: 1: expected width, 2: expected height, 3: actual width, 4: actual height */
+							__( 'Uploaded image dimensions (%3$dx%4$d) do not match original image dimensions (%1$dx%2$d).', 'gutenberg' ),
+							$expected_width,
+							$expected_height,
+							$width,
+							$height
+						),
+						array( 'status' => 400 )
+					);
+				}
+			}
+			return true;
+		}
+
+		// 'full' size (PDF thumbnails): dimensions must be positive.
+		if ( 'full' === $image_size ) {
+			if ( $width <= 0 || $height <= 0 ) {
+				return new WP_Error(
+					'rest_upload_invalid_dimensions',
+					__( 'Uploaded image must have positive dimensions.', 'gutenberg' ),
+					array( 'status' => 400 )
+				);
+			}
+			return true;
+		}
+
+		// Regular image sizes: validate against registered size constraints.
+		$registered_sizes = wp_get_registered_image_subsizes();
+
+		if ( ! isset( $registered_sizes[ $image_size ] ) ) {
+			return new WP_Error(
+				'rest_upload_unknown_size',
+				__( 'Unknown image size.', 'gutenberg' ),
+				array( 'status' => 400 )
+			);
+		}
+
+		$size_data  = $registered_sizes[ $image_size ];
+		$max_width  = (int) $size_data['width'];
+		$max_height = (int) $size_data['height'];
+
+		// Dimensions must be positive.
+		if ( $width <= 0 || $height <= 0 ) {
+			return new WP_Error(
+				'rest_upload_invalid_dimensions',
+				__( 'Uploaded image must have positive dimensions.', 'gutenberg' ),
+				array( 'status' => 400 )
+			);
+		}
+
+		// Validate dimensions don't exceed the registered size maximums.
+		// Allow 1px tolerance for rounding differences.
+		$tolerance = 1;
+
+		if ( $max_width > 0 && $width > $max_width + $tolerance ) {
+			return new WP_Error(
+				'rest_upload_dimension_mismatch',
+				sprintf(
+					/* translators: 1: image size name, 2: max width, 3: actual width */
+					__( 'Uploaded image width (%3$d) exceeds maximum for "%1$s" size (%2$d).', 'gutenberg' ),
+					$image_size,
+					$max_width,
+					$width
+				),
+				array( 'status' => 400 )
+			);
+		}
+
+		if ( $max_height > 0 && $height > $max_height + $tolerance ) {
+			return new WP_Error(
+				'rest_upload_dimension_mismatch',
+				sprintf(
+					/* translators: 1: image size name, 2: max height, 3: actual height */
+					__( 'Uploaded image height (%3$d) exceeds maximum for "%1$s" size (%2$d).', 'gutenberg' ),
+					$image_size,
+					$max_height,
+					$height
+				),
+				array( 'status' => 400 )
+			);
+		}
+
+		return true;
+	}
+
+	/**
 	 * Side-loads a media file without creating an attachment.
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
@@ -464,6 +570,30 @@ class Gutenberg_REST_Attachments_Controller extends WP_REST_Attachments_Controll
 
 		$image_size = $request['image_size'];
 
+		$size = wp_getimagesize( $path );
+
+		// Validate dimensions match expected size.
+		if ( $size ) {
+			$validation = $this->validate_image_dimensions( $size[0], $size[1], $image_size, $attachment_id );
+			if ( is_wp_error( $validation ) ) {
+				// Clean up the uploaded file.
+				wp_delete_file( $path );
+
+				gutenberg_media_debug_log(
+					'Sideload FAILED - dimension validation',
+					array(
+						'attachment_id' => $attachment_id,
+						'image_size'    => $image_size,
+						'actual_width'  => $size[0],
+						'actual_height' => $size[1],
+						'error'         => $validation->get_error_message(),
+					)
+				);
+
+				return $validation;
+			}
+		}
+
 		$metadata = wp_get_attachment_metadata( $attachment_id, true );
 
 		if ( ! $metadata ) {
@@ -474,8 +604,6 @@ class Gutenberg_REST_Attachments_Controller extends WP_REST_Attachments_Controll
 			$metadata['original_image'] = wp_basename( $path );
 		} else {
 			$metadata['sizes'] = $metadata['sizes'] ?? array();
-
-			$size = wp_getimagesize( $path );
 
 			$metadata['sizes'][ $image_size ] = array(
 				'width'     => $size ? $size[0] : 0,
