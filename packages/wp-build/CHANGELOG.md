@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Update documentation to describe `wpPlugin.name`
+
+## 0.6.0 (2026-01-16)
+
 ### Breaking Changes
 
 - Renamed generated PHP files to avoid `index.php` naming conflicts:
