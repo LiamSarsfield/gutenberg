@@ -171,6 +171,15 @@ export interface Settings {
 	// Images larger than this will be scaled down before upload.
 	// Default is 2560 (matching WordPress core).
 	bigImageSizeThreshold?: number;
+	// Output format mapping from the image_editor_output_format filter.
+	// Maps input mime types to output mime types (e.g., 'image/jpeg' -> 'image/webp').
+	imageOutputFormats?: Record< string, string >;
+	// Whether to use interlaced/progressive encoding for JPEG images.
+	jpegInterlaced?: boolean;
+	// Whether to use interlaced encoding for PNG images.
+	pngInterlaced?: boolean;
+	// Whether to use interlaced encoding for GIF images.
+	gifInterlaced?: boolean;
 }
 
 // Must match the Attachment type from the media-utils package.
