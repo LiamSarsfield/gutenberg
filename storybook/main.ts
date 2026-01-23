@@ -90,15 +90,28 @@ export default {
 						} );
 					},
 				},
-				// Stub the vips package for Storybook since it uses WASM modules that Vite can't handle.
+				// Stub the vips and wasm-vips packages for Storybook since they use WASM modules that Vite can't handle.
 				{
 					name: 'stub-vips',
+					enforce: 'pre',
 					resolveId( id: string ) {
+						// Stub @wordpress/vips imports.
 						if (
 							id === '@wordpress/vips' ||
 							id.startsWith( '@wordpress/vips/' )
 						) {
 							return '\0virtual:vips-stub';
+						}
+						// Stub wasm-vips imports.
+						if (
+							id === 'wasm-vips' ||
+							id.startsWith( 'wasm-vips/' )
+						) {
+							return '\0virtual:wasm-vips-stub';
+						}
+						// Stub WASM file imports.
+						if ( id.endsWith( '.wasm' ) ) {
+							return '\0virtual:wasm-stub';
 						}
 						return null;
 					},
@@ -120,6 +133,14 @@ export default {
 								export const vipsHasTransparency = hasTransparency;
 								export const vipsCancelOperations = cancelOperations;
 							`;
+						}
+						if ( id === '\0virtual:wasm-vips-stub' ) {
+							// Return a stub for wasm-vips default export.
+							return `export default () => Promise.resolve({});`;
+						}
+						if ( id === '\0virtual:wasm-stub' ) {
+							// Return empty string for WASM files.
+							return `export default '';`;
 						}
 						return null;
 					},
