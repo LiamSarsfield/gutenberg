@@ -225,6 +225,7 @@ export enum OperationType {
 	ResizeCrop = 'RESIZE_CROP',
 	Rotate = 'ROTATE',
 	ThumbnailGeneration = 'THUMBNAIL_GENERATION',
+	Finalize = 'FINALIZE',
 }
 
 /**
