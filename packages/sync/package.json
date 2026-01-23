@@ -41,6 +41,7 @@
 	},
 	"react-native": "src/index",
 	"types": "build-types",
+	"wpScript": true,
 	"sideEffects": false,
 	"dependencies": {
 		"@types/diff": "7.0.2",
