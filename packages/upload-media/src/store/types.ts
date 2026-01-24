@@ -1,5 +1,12 @@
 export type QueueItemId = string;
 
+export type ImageMimeType =
+	| 'image/jpeg'
+	| 'image/png'
+	| 'image/gif'
+	| 'image/webp'
+	| 'image/avif';
+
 export type QueueStatus = 'active' | 'paused';
 
 export type BatchId = string;
@@ -173,7 +180,9 @@ export interface Settings {
 	bigImageSizeThreshold?: number;
 	// Output format mapping from the image_editor_output_format filter.
 	// Maps input mime types to output mime types (e.g., 'image/jpeg' -> 'image/webp').
-	imageOutputFormats?: Record< string, string >;
+	imageOutputFormats?: Partial<
+		Record< ImageMimeType, ImageMimeType >
+	>;
 	// Whether to use interlaced/progressive encoding for JPEG images.
 	jpegInterlaced?: boolean;
 	// Whether to use interlaced encoding for PNG images.
