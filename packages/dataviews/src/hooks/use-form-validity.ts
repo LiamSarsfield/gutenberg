@@ -176,7 +176,7 @@ function handleElementsValidationAsync< Item >(
 				return;
 			}
 
-			if ( ! Array.isArray( result ) ) {
+			if ( ! result || ! Array.isArray( result.elements ) ) {
 				setFormValidity( ( prev ) => {
 					const newFormValidity = setValidityAtPath(
 						prev,
@@ -197,7 +197,7 @@ function handleElementsValidationAsync< Item >(
 				formField.field?.isValid.elements &&
 				! formField.field.isValid.elements.validate( item, {
 					...formField.field,
-					elements: result,
+					elements: result.elements,
 				} )
 			) {
 				setFormValidity( ( prev ) => {
