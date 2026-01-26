@@ -55,17 +55,15 @@ jobs:
             - name: Run the tests
               env:
                   PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: 1
-                  SHARD_PART: ${{ matrix.part }}
-                  SHARD_TOTAL: ${{ matrix.totalParts }}
               run: |
-                  xvfb-run --auto-servernum --server-args="-screen 0 1280x960x24" -- npm run test:e2e -- --shard="${SHARD_PART}/${SHARD_TOTAL}"
+                  xvfb-run --auto-servernum --server-args="-screen 0 1280x960x24" -- npm run --workspace @wordpress/e2e-tests-playwright test:e2e -- --shard=${{ matrix.part }}/${{ matrix.totalParts }}
 
             - name: Archive debug artifacts (screenshots, traces)
               uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
               if: ${{ !cancelled() }}
               with:
                   name: failures-artifacts--${{ matrix.part }}
-                  path: artifacts/test-results
+                  path: test/e2e/artifacts/test-results
                   if-no-files-found: ignore
 
             - name: Archive flaky tests report
@@ -73,7 +71,7 @@ jobs:
               if: ${{ !cancelled() }}
               with:
                   name: flaky-tests-report--${{ matrix.part }}
-                  path: flaky-tests
+                  path: test/e2e/flaky-tests
                   if-no-files-found: ignore
 
     merge-artifacts:
