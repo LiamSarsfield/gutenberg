@@ -264,6 +264,7 @@ const getAllBlocks = () => {
 		tableOfContents,
 		homeLink,
 		logInOut,
+		navigationOverlayClose,
 		termCount,
 		termDescription,
 		termName,
@@ -288,8 +289,6 @@ const getAllBlocks = () => {
 		blocks.push( formSubmitButton );
 		blocks.push( formSubmissionNotification );
 	}
-
-	blocks.push( navigationOverlayClose );
 
 	// When in a WordPress context, conditionally
 	// add the classic block and TinyMCE editor
