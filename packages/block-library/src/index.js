@@ -289,9 +289,7 @@ const getAllBlocks = () => {
 		blocks.push( formSubmissionNotification );
 	}
 
-	if ( window?.__experimentalNavigationOverlays ) {
-		blocks.push( navigationOverlayClose );
-	}
+	blocks.push( navigationOverlayClose );
 
 	// When in a WordPress context, conditionally
 	// add the classic block and TinyMCE editor

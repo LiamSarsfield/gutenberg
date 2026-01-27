@@ -333,10 +333,6 @@ function Navigation( {
 
 	const blockEditingMode = useBlockEditingMode();
 
-	const isOverlayExperimentEnabled =
-		typeof window !== 'undefined' &&
-		window.__experimentalNavigationOverlays === true;
-
 	// Preload classic menus, so that they don't suddenly pop-in when viewing
 	// the Select Menu dropdown.
 	const { menus: classicMenus } = useNavigationEntities();
@@ -734,7 +730,7 @@ function Navigation( {
 	const stylingInspectorControls = (
 		<>
 			<InspectorControls>
-				{ ( ! isOverlayExperimentEnabled || hasSubmenus ) && (
+				{ hasSubmenus && (
 					<ToolsPanel
 						label={ __( 'Display' ) }
 						resetAll={ () => {
@@ -748,7 +744,7 @@ function Navigation( {
 						} }
 						dropdownMenuProps={ dropdownMenuProps }
 					>
-						{ ! isOverlayExperimentEnabled && (
+						{ false && (
 							<>
 								{ isResponsive && (
 									<OverlayMenuPreviewButton
@@ -899,7 +895,7 @@ function Navigation( {
 					</ToolsPanel>
 				) }
 			</InspectorControls>
-			{ isOverlayExperimentEnabled && ! isWithinOverlay && (
+			{ ! isWithinOverlay && (
 				<InspectorControls>
 					<OverlayPanel
 						overlayMenu={ overlayMenu }
