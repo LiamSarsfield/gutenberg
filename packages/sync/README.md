@@ -46,6 +46,10 @@ Y.Map key representing the Y.Doc client ID of the user who performed the last sa
 
 The sync manager orchestrates the lifecycle of syncing entity records. It creates Yjs documents, connects to providers, creates awareness instances, and coordinates with the `core-data` store.
 
+_Parameters_
+
+-   _debug_ Whether to enable performance and debug logging.
+
 ### Delta
 
 Deltas are used to calculate incremental Y.Text updates.
