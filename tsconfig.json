@@ -73,7 +73,6 @@
 		{ "path": "packages/ui" },
 		{ "path": "packages/undo-manager" },
 		{ "path": "packages/upload-media" },
-		{ "path": "packages/jest-console" },
 		{ "path": "packages/url" },
 		{ "path": "packages/views" },
 		{ "path": "packages/vips" },
