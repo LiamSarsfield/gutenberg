@@ -86,7 +86,13 @@ const ValidationComponent = ( {
 	custom: 'sync' | 'async' | 'none';
 	pattern: boolean;
 	minMax: boolean;
-	layout: 'regular' | 'panel' | 'card' | 'details';
+	layout:
+		| 'regular'
+		| 'panel-dropdown'
+		| 'panel-modal'
+		| 'card-collapsible'
+		| 'card-not-collapsible'
+		| 'details';
 } ) => {
 	type ValidatedItem = {
 		text: string;
@@ -973,9 +979,16 @@ const ValidationComponent = ( {
 			},
 		];
 
-		if ( layout === 'panel' ) {
+		if ( layout === 'panel-dropdown' ) {
 			return {
-				layout: { type: 'panel' as const },
+				layout: { type: 'panel' as const, openAs: 'dropdown' as const },
+				fields: groupedFields,
+			};
+		}
+
+		if ( layout === 'panel-modal' ) {
+			return {
+				layout: { type: 'panel' as const, openAs: 'modal' as const },
 				fields: groupedFields,
 			};
 		}
@@ -987,8 +1000,16 @@ const ValidationComponent = ( {
 			};
 		}
 
+		if ( layout === 'card-collapsible' ) {
+			return {
+				layout: { type: 'card' as const },
+				fields: groupedFields,
+			};
+		}
+
+		// card-not-collapsible
 		return {
-			layout: { type: 'card' as const },
+			layout: { type: 'card' as const, isCollapsible: false },
 			fields: groupedFields,
 		};
 	}, [ layout ] );
