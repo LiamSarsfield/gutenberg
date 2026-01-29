@@ -1,0 +1,1 @@
+import{c as o,a as e}from"./component-DB3p2DUT.js";import{u as r,F as n}from"./component-B2ouI5ca.js";import{a as s}from"./iframe-CN2Vg3UF.js";var a=o((function UnconnectedFlex(o,a){const{children:c,isColumn:i,...m}=r(o);return s.jsx(n.Provider,{value:{flexItemDisplay:i?"block":void 0},children:s.jsx(e,{...m,ref:a,children:c})})}),"Flex");export{a as c};

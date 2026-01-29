@@ -1,0 +1,1 @@
+import{c as r}from"./component-D91srZ6Z.js";import{r as o,a}from"./iframe-CN2Vg3UF.js";var e=o.forwardRef((function UnforwardedToggleGroupControlOption(o,e){const{label:l,...n}=o,t=n["aria-label"]||l;return a.jsx(r,{...n,"aria-label":t,ref:e,children:l})}));e.displayName="ToggleGroupControlOption";var l=e;export{l as c};
